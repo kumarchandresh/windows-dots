@@ -1,4 +1,4 @@
-Import-Module "$PSScriptRoot\..\Util"
+Import-Module "$PSScriptRoot\..\Utils"
 
 # https://github.com/microsoft/winget-cli/issues/1653
 # Currently, result of winget list and winget search is truncated for adjusting display size or
@@ -61,7 +61,7 @@ function Install-WinGetPackage {
   else {
     $null
   }
-  $logsDir = "$PSScriptRoot\..\..\Logs"
+  $logsDir = "${env:TEMP}\Logs"
   if ($Config) {
     switch ($type) {
       'inno' {

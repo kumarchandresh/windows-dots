@@ -2,15 +2,17 @@ param (
   [switch]$SelfExecuted
 )
 
+# Get-ChildItem -Recurse -File | Where-Object { $_.Name -match '.ps(d|m)?1$' } | Unblock-File
+
 # https://stackoverflow.com/a/49481797
 # Display Unicode in PowerShell
 # Required for properly formatting result of `winget list` command.
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
 $OutputEncoding = [Console]::OutputEncoding = [Console]::InputEncoding = [Text.Encoding]::UTF8
 
-Import-Module -Force "$PSScriptRoot\Modules\Util"
-Import-Module -Force "$PSScriptRoot\Modules\Scoop"
-Import-Module -Force "$PSScriptRoot\Modules\WinGet"
+Import-Module -Force "$PSScriptRoot\home\Documents\PowerShell\Modules\Scoop"
+Import-Module -Force "$PSScriptRoot\home\Documents\PowerShell\Modules\Utils"
+Import-Module -Force "$PSScriptRoot\home\Documents\PowerShell\Modules\WinGet"
 
 function Write-Title {
   Write-Host ''
@@ -116,10 +118,15 @@ Install-ScoopPackage 'extras/posh-git'
 Write-Title '(*) Install Visual Studio Code'
 Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'vscode.inf'
 
-# https://code.visualstudio.com/insiders
-Write-Title '(*) Install Visual Studio Code (Insiders)'
-Install-WinGetPackage 'Microsoft.VisualStudioCode.Insiders' -Config 'vscode.inf'
+# https://www.chezmoi.io
+Write-Title '(*) Install chezmoi'
+Install-ScoopPackage 'main/chezmoi'
 
-# https://cursor.com
-Write-Title '(*) Install Cursor'
-Install-WinGetPackage 'Anysphere.Cursor' -Config 'vscode.inf'
+try {
+  chezmoi git status 2>&1 | Out-Null
+}
+finally {
+  if ($LASTEXITCODE -ne 0) {
+    chezmoi init --apply 'github.com/kumarchandresh'
+  }
+}
