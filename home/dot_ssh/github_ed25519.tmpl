@@ -1,0 +1,5 @@
+{{- if lookPath "bw" -}}
+{{ (bitwarden "item" "github.com:kumarchandresh").sshKey.privateKey }}
+{{- else -}}
+# Bitwarden CLI not available - please add your SSH private key manually
+{{- end -}}

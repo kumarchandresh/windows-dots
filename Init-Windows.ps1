@@ -118,6 +118,34 @@ Install-ScoopPackage 'extras/posh-git'
 Write-Title '(*) Install Visual Studio Code'
 Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'vscode.inf'
 
+Write-Title '(*) Install Bitwarden CLI'
+Install-ScoopPackage 'main/bitwarden-cli'
+
+do {
+  if (-not (Test-IsCommandAvailable 'bw')) {
+    throw 'Bitwarden CLI not available'
+  }
+  $bwStatus = & bw status | ConvertFrom-Json
+  if ($bwStatus.status -eq 'unauthenticated') {
+    Write-Host 'Login to Bitwarden:' -ForegroundColor Yellow
+    $env:BW_SESSION = & bw login --raw
+  }
+  elseif ($bwStatus.status -eq 'locked') {
+    Write-Host 'Unlock your Bitwarden vault:' -ForegroundColor Yellow
+    $env:BW_SESSION = & bw unlock --raw
+  }
+  elseif ($bwStatus.status -eq 'unlocked') {
+    Write-Host 'Bitwarden vault is already unlocked' -ForegroundColor Green
+  }
+  $retry = 'n'
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host 'Bitwarden vault unlocked successfully' -ForegroundColor Green
+  } else {
+    Write-Host 'Failed to unlock Bitwarden vault' -ForegroundColor Red
+    $retry = Read-Host 'Try again? (y/n)'
+  }
+} while ($retry -eq 'y')
+
 # https://www.chezmoi.io
 Write-Title '(*) Install chezmoi'
 Install-ScoopPackage 'main/chezmoi'
@@ -126,7 +154,14 @@ try {
   chezmoi git status 2>&1 | Out-Null
 }
 finally {
+  Write-Host 'Applying chezmoi changes...' -ForegroundColor Yellow
   if ($LASTEXITCODE -ne 0) {
-    chezmoi init --apply 'github.com/kumarchandresh'
+    chezmoi init --apply 'github.com/kumarchandresh' --force
+  }
+  else {
+    chezmoi apply --force
+  }
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host 'Done.' -ForegroundColor Green
   }
 }
