@@ -1,4 +1,7 @@
 Import-Module -Force 'posh-git'
+Import-Module -Force 'Utils'
+
+Restore-EnvPath # Change "Path" precedence
 
 function which {
   if ($args.Length -ne 0) {

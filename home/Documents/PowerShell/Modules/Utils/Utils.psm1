@@ -104,8 +104,8 @@ function Restore-EnvPath {
   # Windows is crazy; it prepends system path to user path; which results in
   # system applications taking precedence over user applications.
   ${env:Path} = @(
-    [Environment]::GetEnvironmentVariable('Path', 'Machine')
     [Environment]::GetEnvironmentVariable('Path', 'User')
+    [Environment]::GetEnvironmentVariable('Path', 'Machine')
   ) -join ';'
 }
 
