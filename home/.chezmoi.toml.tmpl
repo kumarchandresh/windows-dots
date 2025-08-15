@@ -1,0 +1,9 @@
+{{- $personal := false -}}
+{{- "" -}}
+
+{{- if stdinIsATTY -}}
+{{- $personal = promptBoolOnce . "personal" "Store personal secrets on this machine" -}}
+{{- end -}}
+
+[data]
+  personal = {{ $personal }}
