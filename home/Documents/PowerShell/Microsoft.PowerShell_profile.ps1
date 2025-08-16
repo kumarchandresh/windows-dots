@@ -1,4 +1,5 @@
 Import-Module -Force 'posh-git'
+Import-Module -Force 'Terminal-Icons'
 Import-Module -Force 'Utils'
 
 Restore-EnvPath # Change "Path" precedence

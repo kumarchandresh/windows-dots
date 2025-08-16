@@ -117,3 +117,30 @@ function Test-IsSymbolicLink {
   )
   return [bool]((Test-Path $Path) -and ((Get-Item $Path).LinkType -eq 'SymbolicLink'))
 }
+
+function Unlock-Bitwarden {
+  do {
+    if (-not (Test-IsCommandAvailable 'bw')) {
+      throw 'Bitwarden CLI not available'
+    }
+    $bwStatus = & bw status | ConvertFrom-Json
+    if ($bwStatus.status -eq 'unauthenticated') {
+      Write-Host 'Login to Bitwarden:' -ForegroundColor Yellow
+      $env:BW_SESSION = & bw login --raw
+    }
+    elseif ($bwStatus.status -eq 'locked') {
+      Write-Host 'Unlock your Bitwarden vault:' -ForegroundColor Yellow
+      $env:BW_SESSION = & bw unlock --raw
+    }
+    elseif ($bwStatus.status -eq 'unlocked') {
+      Write-Host 'Bitwarden vault is already unlocked' -ForegroundColor Green
+    }
+    $retry = 'n'
+    if (($LASTEXITCODE -eq 0) -and ($bwStatus.status -ne 'unlocked')) {
+      Write-Host 'Bitwarden vault unlocked successfully' -ForegroundColor Green
+    } else {
+      Write-Host 'Failed to unlock Bitwarden vault' -ForegroundColor Red
+      $retry = Read-Host 'Try again? (y/n)'
+    }
+  } while ($retry -eq 'y')
+}
