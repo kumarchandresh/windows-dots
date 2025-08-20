@@ -210,9 +210,13 @@ finally {
     chezmoi init --apply 'github.com/kumarchandresh' --force
   }
   else {
-    chezmoi apply --force
+    chezmoi update --force
   }
   if ($LASTEXITCODE -eq 0) {
     Write-Host 'Done.' -ForegroundColor Green
   }
 }
+
+# TODO: Can we handle this better via chezmoi?
+Write-Title '(+) Install theme: Catppuccin (Windows Terminal)'
+& "$PSScriptRoot\home\Documents\PowerShell\Scripts\Install-Catppuccin.ps1"
