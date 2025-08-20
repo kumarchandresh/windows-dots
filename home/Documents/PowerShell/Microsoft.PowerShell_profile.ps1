@@ -8,4 +8,4 @@ function which {
   scoop which @args
 }
 
-Invoke-Expression (& { (oh-my-posh init pwsh | Out-String) })
+Invoke-Expression (& { (oh-my-posh init pwsh --config "$HOME\.config\oh-my-posh\pure.omp.yaml" | Out-String) })
