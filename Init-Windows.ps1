@@ -66,17 +66,32 @@ if ($PSEdition -ne 'Core') {
 
   # Add scoop buckets.
   $buckets = @(Get-ChildItem -Path "$HOME\scoop\buckets" -Directory | Select-Object -ExpandProperty Name)
-  $buckets += @('extras', 'versions', 'java')
+  $moreBuckets = @{
+    'fonts' = 'https://github.com/kumarchandresh/scoop-fonts'
+  }
+  $buckets += @('extras', 'versions', 'java') + $moreBuckets.Keys
   $buckets = $buckets | Select-Object -Unique
+
   foreach ($bucket in $buckets) {
-    if (-not (Test-Path "$HOME\scoop\buckets\$bucket")) {
+    $bucketPath = "$HOME\scoop\buckets\$bucket"
+    if (-not (Test-Path $bucketPath)) {
       Write-Title "(+) Add scoop bucket: $bucket"
-      & scoop bucket add $bucket
+      if ($moreBuckets.ContainsKey($bucket)) {
+        & scoop bucket add $bucket $moreBuckets[$bucket]
+      }
+      else {
+        & scoop bucket add $bucket
+      }
     }
-    elseif (-not (Test-Path "$HOME\scoop\buckets\$bucket\.git")) {
+    elseif (-not (Test-Path "$bucketPath\.git")) {
       Write-Title "(+) Re-add scoop bucket: $bucket"
       & scoop bucket rm $bucket
-      & scoop bucket add $bucket
+      if ($moreBuckets.ContainsKey($bucket)) {
+        & scoop bucket add $bucket $moreBuckets[$bucket]
+      }
+      else {
+        & scoop bucket add $bucket
+      } 
     }
   }
 
@@ -118,6 +133,7 @@ Install-ScoopPackage 'extras/posh-git'
 Write-Title '(+) Install Terminal-Icons'
 Install-ScoopPackage 'extras/terminal-icons'
 
+# https://github.com/fastfetch-cli/fastfetch
 Write-Title '(+) Install fastfetch'
 Install-ScoopPackage 'main/fastfetch'
 
@@ -164,6 +180,11 @@ Install-ScoopPackage 'main/tlrc'
 # https://code.visualstudio.com
 Write-Title '(+) Install Visual Studio Code'
 Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'vscode.inf'
+
+# https://github.com/0xType/0xProto
+Write-Title '(+) Install font: 0xProto'
+Install-ScoopPackage 'fonts/0xProto'
+Install-ScoopPackage 'fonts/0xProtoNerdFont'
 
 # https://github.com/bitwarden/clients
 Write-Title '(+) Install Bitwarden CLI'
