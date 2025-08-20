@@ -1,3 +1,9 @@
-# 🪟 `Init-Windows`
+# github.com/kumarchandresh/dotfiles
 
-> **PowerShell** scripts to (re)install applications on my Windows PC.
+### 🪟 `Init-Windows`
+
+> **PowerShell** script to (re)configure my Windows PC.
+
+```
+./Init-Windows.ps1
+```
