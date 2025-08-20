@@ -66,9 +66,6 @@ if ($PSEdition -ne 'Core') {
   # https://gitforwindows.org
   Write-Title '(+) Install git'
   Install-ScoopPackage 'main/git'
-  # Set Git Credential Manager Core by running: "git config --global credential.helper manager"
-  # To add context menu entries, run '$HOME\scoop\apps\git\current\install-context.reg'
-  # To create file-associations for .git* and .sh files, run '$HOME\scoop\apps\git\current\install-file-associations.reg'
 
   # Add scoop buckets.
   $buckets = @(Get-ChildItem -Path "$HOME\scoop\buckets" -Directory | Select-Object -ExpandProperty Name)
@@ -105,8 +102,8 @@ if ($PSEdition -ne 'Core') {
   Write-Title '(+) Install PowerShell (Core)'
   Install-ScoopPackage 'main/pwsh'
 
-  # Re-launching in PowerShell (Core)
-  & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -SelfExecuted
+  # Re-launch in PowerShell (Core)
+  & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -ArgumentList '-SelfExecuted'
   exit 0
 }
 
@@ -114,15 +111,18 @@ if ($PSEdition -ne 'Core') {
 Write-Title '(+) Install dark (WiX Toolset Decompiler)'
 Install-ScoopPackage 'main/dark'
 
+# https://www.python.org
 Write-Title '(+) Install Python (3.x)'
 Install-ScoopPackage 'main/python'
 reg import "$HOME\scoop\apps\python\current\install-pep-514.reg"
 
+# https://nodejs.org
 Write-Title '(+) Install Node.js (LTS)'
 Install-ScoopPackage 'main/nodejs-lts'
 
-Write-Title '(+) Install JDK (LTS)'
-Install-ScoopPackage 'java/oraclejdk-lts'
+# https://www.microsoft.com/openjdk
+Write-Title '(+) Install Microsoft Build of OpenJDK™ (LTS)'
+Install-ScoopPackage 'java/microsoft-lts-jdk'
 
 Write-Title '(+) Install Groovy'
 Install-ScoopPackage 'main/groovy'
@@ -218,5 +218,59 @@ finally {
 }
 
 # TODO: Can we handle this better via chezmoi?
-Write-Title '(+) Install theme: Catppuccin (Windows Terminal)'
-& "$PSScriptRoot\home\Documents\PowerShell\Scripts\Install-Catppuccin.ps1"
+Write-Title '(+) Install Windows Terminal themes'
+$wtColorSchemes = @(
+  @{ name = 'Catppuccin Frappe'    ; url = 'https://raw.githubusercontent.com/catppuccin/windows-terminal/refs/heads/main/frappe.json' },
+  @{ name = 'Catppuccin Latte'     ; url = 'https://raw.githubusercontent.com/catppuccin/windows-terminal/refs/heads/main/latte.json' },
+  @{ name = 'Catppuccin Macchiato' ; url = 'https://raw.githubusercontent.com/catppuccin/windows-terminal/refs/heads/main/macchiato.json' },
+  @{ name = 'Catppuccin Mocha'     ; url = 'https://raw.githubusercontent.com/catppuccin/windows-terminal/refs/heads/main/mocha.json' },
+  @{ name = 'rose-pine'            ; url = 'https://raw.githubusercontent.com/rose-pine/windows-terminal/refs/heads/main/rose-pine.scheme.json' },
+  @{ name = 'rose-pine-dawn'       ; url = 'https://raw.githubusercontent.com/rose-pine/windows-terminal/refs/heads/main/rose-pine-dawn.scheme.json' },
+  @{ name = 'rose-pine-moon'       ; url = 'https://raw.githubusercontent.com/rose-pine/windows-terminal/refs/heads/main/rose-pine-moon.scheme.json' }
+)
+
+$wtThemes = @(
+  @{ name = 'Catppuccin Frappe'    ; url = 'https://raw.githubusercontent.com/catppuccin/windows-terminal/refs/heads/main/frappeTheme.json' },
+  @{ name = 'Catppuccin Latte'     ; url = 'https://raw.githubusercontent.com/catppuccin/windows-terminal/refs/heads/main/latteTheme.json' },
+  @{ name = 'Catppuccin Macchiato' ; url = 'https://raw.githubusercontent.com/catppuccin/windows-terminal/refs/heads/main/macchiatoTheme.json' },
+  @{ name = 'Catppuccin Mocha'     ; url = 'https://raw.githubusercontent.com/catppuccin/windows-terminal/refs/heads/main/mochaTheme.json' },
+  @{ name = 'rose-pine'            ; url = 'https://raw.githubusercontent.com/rose-pine/windows-terminal/refs/heads/main/rose-pine.theme.json' },
+  @{ name = 'rose-pine-dawn'       ; url = 'https://raw.githubusercontent.com/rose-pine/windows-terminal/refs/heads/main/rose-pine-dawn.theme.json' },
+  @{ name = 'rose-pine-moon'       ; url = 'https://raw.githubusercontent.com/rose-pine/windows-terminal/refs/heads/main/rose-pine-moon.theme.json' }
+)
+
+try {
+  $TerminalDir = Get-ChildItem "$env:LOCALAPPDATA\Packages" -Filter Microsoft.WindowsTerminal_* | Select-Object -First 1 -ExpandProperty FullName
+  if ($null -ne $TerminalDir) {
+    $TerminalSettingsPath = Join-Path $TerminalDir 'LocalState\settings.json'
+    $TerminalSettings = Get-Content $TerminalSettingsPath -Raw | ConvertFrom-Json -Depth 99
+    Write-Host 'Downloading color schemes...'
+    $TerminalSettings.schemes = $wtColorSchemes | ForEach-Object {
+      Write-Host $_.name -ForegroundColor DarkGray
+      (Invoke-WebRequest -Uri $_.url).Content | ConvertFrom-Json -Depth 99
+    }
+    Write-Host 'Downloading themes...'
+    $TerminalSettings.themes = $wtThemes | ForEach-Object {
+      Write-Host $_.name -ForegroundColor DarkGray
+      (Invoke-WebRequest -Uri $_.url).Content | ConvertFrom-Json -Depth 99
+    }
+  }
+  if ($null -eq $TerminalSettings.theme) {
+    $TerminalSettings | Add-Member -Type NoteProperty -Name 'theme' -Value ''
+  }
+  if ($null -eq $TerminalSettings.profiles) {
+    $TerminalSettings | Add-Member -Type NoteProperty -Name 'profiles' -Value ([PSCustomObject]@{})
+  }
+  if ($null -eq $TerminalSettings.profiles.defaults) {
+    $TerminalSettings.profiles | Add-Member -Type NoteProperty -Name 'defaults' -Value ([PSCustomObject]@{})
+  }
+  if ($null -eq $TerminalSettings.profiles.defaults.colorScheme) {
+    $TerminalSettings.profiles.defaults | Add-Member -Type NoteProperty -Name 'colorScheme' -Value ''
+  }
+  $TerminalSettings.theme = 'rose-pine'
+  $TerminalSettings.profiles.defaults.colorScheme = 'rose-pine'
+  $TerminalSettings | ConvertTo-Json -Depth 99 | Out-File $TerminalSettingsPath -Encoding UTF8
+}
+catch {
+  Write-Error $_
+}
