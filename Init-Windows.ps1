@@ -30,6 +30,16 @@ if ($PSEdition -eq 'Core' -and (-not $SelfExecuted)) {
 # Bootstrap in PowerShell (Core)
 if ($PSEdition -ne 'Core') {
 
+  # https://learn.microsoft.com/en-us/windows/package-manager/winget
+  Write-Title '(+) Install winget'
+  if (-not (Test-IsCommandAvailable 'winget')) {
+    throw 'winget is not available; visit https://github.com/microsoft/winget-cli'
+  }
+  else {
+    winget source update
+    winget upgrade winget
+  }
+
   # https://github.com/ScoopInstaller/Scoop/wiki
   Write-Title '(+) Install scoop'
   if (-not (Test-IsCommandAvailable 'scoop')) {
@@ -51,11 +61,7 @@ if ($PSEdition -ne 'Core') {
   # https://www.7-zip.org
   Write-Title '(+) Install 7zip'
   Install-ScoopPackage 'main/7zip'
-  # Add 7-Zip as a context menu option by running: "$HOME\scoop\apps\7zip\current\install-context.reg"
-
-  # https://github.com/ScoopInstaller/Shim
-  Write-Title '(+) Install ScoopInstaller/Shim'
-  Install-ScoopPackage 'main/scoop-shim'
+  reg import "$HOME\scoop\apps\7zip\current\install-context.reg"
 
   # https://gitforwindows.org
   Write-Title '(+) Install git'
@@ -95,35 +101,31 @@ if ($PSEdition -ne 'Core') {
     }
   }
 
-  # https://github.com/PowerShell/PowerShell/issues/19845
-  # Notes: If winget had user-level installation of PowerShell and Git, then we could bootstrap with
-  # winget, install Git and PowerShell first, and then install scoop so that the scoop buckets are
-  # initialized with git. But this is not possible as of now.
-  # Workaround: Install PowerShell (Core) from Microsoft Store, and GitHub Desktop (for git) from WinGet.
   # https://microsoft.com/PowerShell
   Write-Title '(+) Install PowerShell (Core)'
   Install-ScoopPackage 'main/pwsh'
-  # Add PowerShell Core as a explorer context menu by running: '$HOME\scoop\apps\pwsh\current\install-explorer-context.reg'
-  # For file context menu, run '$HOME\scoop\apps\pwsh\current\install-file-context.reg'
 
   # Re-launching in PowerShell (Core)
   & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -SelfExecuted
   exit 0
 }
 
-# https://learn.microsoft.com/en-us/windows/package-manager/winget
-Write-Title '(+) Install winget'
-if (-not (Test-IsCommandAvailable 'winget')) {
-  Install-ScoopPackage 'main/winget'
+# https://wixtoolset.org
+Write-Title '(+) Install dark (WiX Toolset Decompiler)'
+Install-ScoopPackage 'main/dark'
 
-  if (-not (Test-IsCommandAvailable 'winget')) {
-    throw 'winget is not available; visit https://github.com/microsoft/winget-cli'
-  }
-}
-else {
-  winget source update
-  winget upgrade winget
-}
+Write-Title '(+) Install Python (3.x)'
+Install-ScoopPackage 'main/python'
+reg import "$HOME\scoop\apps\python\current\install-pep-514.reg"
+
+Write-Title '(+) Install Node.js (LTS)'
+Install-ScoopPackage 'main/nodejs-lts'
+
+Write-Title '(+) Install JDK (LTS)'
+Install-ScoopPackage 'java/oraclejdk-lts'
+
+Write-Title '(+) Install Groovy'
+Install-ScoopPackage 'main/groovy'
 
 # https://github.com/dahlbyk/posh-git
 Write-Title '(+) Install posh-git'
