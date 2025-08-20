@@ -135,6 +135,10 @@ Install-ScoopPackage 'extras/posh-git'
 Write-Title '(+) Install Terminal-Icons'
 Install-ScoopPackage 'extras/terminal-icons'
 
+# https://ohmyposh.dev
+Write-Title '(+) Install Oh My Posh'
+Install-WinGetPackage 'JanDeDobbeleer.OhMyPosh'
+
 # https://github.com/fastfetch-cli/fastfetch
 Write-Title '(+) Install fastfetch'
 Install-ScoopPackage 'main/fastfetch'
