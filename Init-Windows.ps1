@@ -107,6 +107,48 @@ if ($PSEdition -ne 'Core') {
   exit 0
 }
 
+# https://github.com/bitwarden/clients
+Write-Title '(+) Install Bitwarden CLI'
+Install-ScoopPackage 'main/bitwarden-cli'
+Unlock-Bitwarden
+
+# https://www.chezmoi.io
+Write-Title '(+) Install chezmoi'
+Install-ScoopPackage 'main/chezmoi'
+
+try {
+  chezmoi git status 2>&1 | Out-Null
+}
+finally {
+  Write-Host 'Applying chezmoi changes...' -ForegroundColor Yellow
+  if ($LASTEXITCODE -ne 0) {
+    chezmoi init --apply 'github.com/kumarchandresh' --force
+  }
+  else {
+    chezmoi update --force
+  }
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host 'Done.' -ForegroundColor Green
+  }
+}
+
+$sshGitHub = & ssh -T git@github.com 2>&1 | Out-String
+if ($sshGitHub -match 'kumarchandresh') {
+  if (-not (Test-Path "$HOME\scoop\buckets\private")) {
+    Write-Title "(+) Add scoop bucket: private"
+    & scoop bucket add 'private' 'git@github.com:kumarchandresh/scoop-private.git'
+  }
+
+  # https://www.monolisa.dev
+  Write-Title '(+) Install font: MonoLisa'
+  Install-ScoopPackage 'private/MonoLisa'
+}
+
+# https://github.com/0xType/0xProto
+Write-Title '(+) Install font: 0xProto'
+Install-ScoopPackage 'fonts/0xProto'
+Install-ScoopPackage 'fonts/0xProtoNerdFont'
+
 # https://wixtoolset.org
 Write-Title '(+) Install dark (WiX Toolset Decompiler)'
 Install-ScoopPackage 'main/dark'
@@ -186,36 +228,6 @@ Install-ScoopPackage 'main/tlrc'
 # https://code.visualstudio.com
 Write-Title '(+) Install Visual Studio Code'
 Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'vscode.inf'
-
-# https://github.com/0xType/0xProto
-Write-Title '(+) Install font: 0xProto'
-Install-ScoopPackage 'fonts/0xProto'
-Install-ScoopPackage 'fonts/0xProtoNerdFont'
-
-# https://github.com/bitwarden/clients
-Write-Title '(+) Install Bitwarden CLI'
-Install-ScoopPackage 'main/bitwarden-cli'
-Unlock-Bitwarden
-
-# https://www.chezmoi.io
-Write-Title '(+) Install chezmoi'
-Install-ScoopPackage 'main/chezmoi'
-
-try {
-  chezmoi git status 2>&1 | Out-Null
-}
-finally {
-  Write-Host 'Applying chezmoi changes...' -ForegroundColor Yellow
-  if ($LASTEXITCODE -ne 0) {
-    chezmoi init --apply 'github.com/kumarchandresh' --force
-  }
-  else {
-    chezmoi update --force
-  }
-  if ($LASTEXITCODE -eq 0) {
-    Write-Host 'Done.' -ForegroundColor Green
-  }
-}
 
 # TODO: Can we handle this better via chezmoi?
 Write-Title '(+) Install Windows Terminal themes'
