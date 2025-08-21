@@ -146,7 +146,6 @@ if ($sshGitHub -match 'kumarchandresh') {
 
 # https://github.com/0xType/0xProto
 Write-Title '(+) Install font: 0xProto'
-Install-ScoopPackage 'fonts/0xProto'
 Install-ScoopPackage 'fonts/0xProtoNerdFont'
 
 # https://wixtoolset.org
