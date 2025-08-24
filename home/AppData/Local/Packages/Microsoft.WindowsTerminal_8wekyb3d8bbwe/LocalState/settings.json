@@ -28,7 +28,8 @@
     "defaults": {
       "colorScheme": "rose-pine",
       "font": {
-        "face": "MonoLisa, '0xProto Nerd Font'"
+        "face": "MonoLisa, '0xProto Nerd Font'",
+        "size": 11
       }
     },
     "list": [
