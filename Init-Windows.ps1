@@ -229,7 +229,11 @@ if ($sshGitHub -match 'kumarchandresh') {
 
 # https://github.com/0xType/0xProto
 Write-Title '(+) Install font: 0xProto'
-Install-ScoopPackage 'fonts/0xProtoNerdFont'
+Install-ScoopPackage 'fonts/0xProto'
+
+# https://www.nerdfonts.com
+Write-Title '(+) Install Nerd Font Symbols'
+Install-ScoopPackage 'fonts/SymbolsNerdFont'
 
 # TODO: Can we handle this better via chezmoi?
 Write-Title '(+) Install Windows Terminal themes'
