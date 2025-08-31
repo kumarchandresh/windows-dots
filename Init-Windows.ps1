@@ -132,6 +132,9 @@ Install-ScoopPackage 'java/microsoft-lts-jdk'
 Write-Title '(+) Install Groovy'
 Install-ScoopPackage 'main/groovy'
 
+Write-Title '(+) Install gsudo'
+Install-ScoopPackage 'main/gsudo'
+
 # https://github.com/fastfetch-cli/fastfetch
 Write-Title '(+) Install fastfetch'
 Install-ScoopPackage 'main/fastfetch'

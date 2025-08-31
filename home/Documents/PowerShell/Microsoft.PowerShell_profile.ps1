@@ -1,3 +1,4 @@
+Import-Module -Force 'gsudoModule'
 Import-Module -Force 'posh-git'
 Import-Module -Force 'Terminal-Icons'
 Import-Module -Force 'Utils'
