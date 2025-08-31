@@ -27,6 +27,7 @@
   "profiles": {
     "defaults": {
       "colorScheme": "rose-pine",
+      "cursorShape": "filledBox",
       "font": {
         "face": "MonoLisa, '0xProto Nerd Font'",
         "size": 11
