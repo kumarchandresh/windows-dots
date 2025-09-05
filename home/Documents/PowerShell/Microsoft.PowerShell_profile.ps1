@@ -1,3 +1,7 @@
+# https://stackoverflow.com/a/49481797
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
+$OutputEncoding = [Console]::OutputEncoding = [Console]::InputEncoding = [Text.Encoding]::UTF8
+
 Import-Module -Force 'gsudoModule'
 Import-Module -Force 'posh-git'
 Import-Module -Force 'Terminal-Icons'
