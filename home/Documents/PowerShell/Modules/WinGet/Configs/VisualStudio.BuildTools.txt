@@ -1,0 +1,4 @@
+--passive
+--wait
+--add Microsoft.VisualStudio.Workload.VCTools
+--includeRecommended

@@ -19,7 +19,10 @@ function Write-Title {
   Write-Host @args -ForegroundColor Blue
 }
 
-if (Test-IsProcessElevated) {
+Write-Host "Running as admin? $(if (Test-IsProcessElevated) { 'Yes' } else { 'No' })" -ForegroundColor DarkGray
+Write-Host "Executed itself? $(if($SelfExecuted) { 'Yes' } else { 'No' })" -ForegroundColor DarkGray
+
+if ((Test-IsProcessElevated) -and (-not $SelfExecuted)) {
   throw 'Cannot be executed from an elevated PowerShell session.'
 }
 
@@ -107,17 +110,18 @@ if ($PSEdition -ne 'Core') {
   exit 0
 }
 
-# https://github.com/gerardog/gsudo
-Write-Title '(+) Install gsudo'
-Install-ScoopPackage 'main/gsudo'
+if (Test-IsProcessElevated) {
+  # https://learn.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
+  # https://learn.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022#use-winget-to-install-or-modify-visual-studio
+  # TODO: Find out how to update the workloads; it may have something to do with winget's configure command
+  Write-Title '(+) Install Visual Studio Build Tools for C++'
+  Install-WinGetPackage -Global 'Microsoft.VisualStudio.2022.BuildTools' -Config 'VisualStudio.BuildTools.txt' -Override
 
-Import-Module -Force 'gsudoModule'
-Write-Host "`nRunning as admin; expect a UAC prompt." -ForegroundColor Yellow
-gsudo {
   # https://learn.microsoft.com/en-us/windows/wsl/install-manual
   $wslMissing = -not (Test-IsCommandAvailable wsl)
   if (-not $wslMissing) {
-    $wslMissing = ((wsl --status 2>&1 | Out-String) -replace "`0", '').Contains('not installed')
+    $wslStatus = (wsl --status 2>&1 | Out-String) -replace "`0", ''
+    $wslMissing = $wslStatus.Contains('not installed')
   }
   if ($wslMissing) {
     @(
@@ -127,30 +131,40 @@ gsudo {
       $featureName = $_
       $feature = Get-WindowsOptionalFeature -Online | Where-Object { $_.FeatureName -eq $featureName }
       if ($feature.State -ne 'Enabled' -or $feature.State -ne 'EnablePending') {
-        Write-Host "`n(+) Enable Windows optional feature: $_" -ForegroundColor Blue
+        Write-Title "(+) Enable Windows optional feature: $_"
         Enable-WindowsOptionalFeature -Online -FeatureName $_ -All -NoRestart
       }
     }
-    Write-Host "`n(+) Install WSL Linux kernel update package"
+    Write-Title "(+) Install WSL Linux kernel update package"
     wsl --update
   }
+  exit 0
+}
+else {
+  # https://github.com/gerardog/gsudo
+  Write-Title '(+) Install gsudo'
+  Install-ScoopPackage 'main/gsudo'
+
+  Write-Host "`nRunning as admin; expect a UAC prompt." -ForegroundColor Yellow
+  & gsudo --integrity High pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -ArgumentList '-SelfExecuted'
 }
 
 if (Test-PendingReboot) {
   # TODO: How to restart automatically and execute this script again?
-  Write-Host "A reboot is pending. Restart and run this script again." -ForegroundColor Yellow
-  exit 0
+  Write-Host "A reboot is pending. You should restart and run this script again." -ForegroundColor Yellow
+  $continue = Read-Host 'Continue? (y/n) '
+  if ($continue -ne 'y') {
+    exit 0
+  }
 }
 
 if (Test-IsCommandAvailable wsl) {
-  # by default, installs Ubuntu and runs it
-  wsl --install
+  $wslList = (wsl --list --verbose 2>&1 | Out-String) -replace "`0", ''
+  if ($wslList -notmatch "Ubuntu") {
+    Write-Title "(+) Install WSL Distro: Ubuntu"
+    wsl --install Ubuntu --no-launch
+  }
 }
-
-# https://github.com/bitwarden/clients
-Write-Title '(+) Install Bitwarden CLI'
-Install-ScoopPackage 'main/bitwarden-cli'
-Unlock-Bitwarden
 
 # https://wixtoolset.org
 Write-Title '(+) Install dark (WiX Toolset Decompiler)'
@@ -219,7 +233,7 @@ Install-ScoopPackage 'main/tlrc'
 
 # https://code.visualstudio.com
 Write-Title '(+) Install Visual Studio Code'
-Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'vscode.inf'
+Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'Microsoft.VSCode.inf'
 
 # https://github.com/dahlbyk/posh-git
 Write-Title '(+) Install posh-git'
@@ -232,6 +246,11 @@ Install-ScoopPackage 'extras/terminal-icons'
 # https://ohmyposh.dev
 Write-Title '(+) Install Oh My Posh'
 Install-WinGetPackage 'JanDeDobbeleer.OhMyPosh'
+
+# https://github.com/bitwarden/clients
+Write-Title '(+) Install Bitwarden CLI'
+Install-ScoopPackage 'main/bitwarden-cli'
+Unlock-Bitwarden
 
 # https://www.chezmoi.io
 Write-Title '(+) Install chezmoi'

@@ -164,7 +164,7 @@ function Unlock-Bitwarden {
     }
     else {
       Write-Host 'Failed to unlock Bitwarden vault' -ForegroundColor Red
-      $retry = Read-Host 'Try again? (y/n)'
+      $retry = Read-Host 'Try again? (y/n) '
     }
   } while ($retry -eq 'y')
 }

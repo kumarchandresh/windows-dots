@@ -31,6 +31,8 @@ function Install-WinGetPackage {
     [Parameter()]
     [string]$Config,
     [Parameter()]
+    [switch]$Override,
+    [Parameter()]
     [switch]$Global,
     [Parameter()]
     [switch]$Record
@@ -51,48 +53,62 @@ function Install-WinGetPackage {
   if ($PSBoundParameters.ContainsKey('InstallerType')) {
     $showArgs += @('--installer-type', $InstallerType)
   }
-  $info = & winget show $showArgs | Out-String
-  if ($info -match 'Installer\s*Type:\s+(.*)') {
-    $type = $matches[1].Trim().ToLower()
-  }
   $Config = if ($PSBoundParameters.ContainsKey('Config')) {
     "$PSScriptRoot\Configs\$Config"
   }
   else {
     $null
   }
-  $logsDir = "${env:TEMP}\Logs"
-  if ($Config) {
-    switch ($type) {
-      'inno' {
-        if ($Record) {
-          $wingetArgs += @('--interactive', "--custom '/SAVEINF=`"$Config`"'")
+  if ($Override) {
+    if (Test-Path $Config) {
+      $fileContent = (Get-Content $Config | Expand-EnvVars) `
+        -join ' ' `
+        -replace '`', '``' `
+        -replace '"', '`"'
+      $wingetArgs += @("--override `"$fileContent`"")
+    }
+    else {
+      Write-Host "Config file not found: $Config" -ForegroundColor Red
+    }
+  }
+  else {
+    $info = & winget show $showArgs | Out-String
+    if ($info -match 'Installer\s*Type:\s+(.*)') {
+      $type = $matches[1].Trim().ToLower()
+    }
+    $logsDir = "${env:TEMP}\Logs"
+    if ($Config) {
+      switch ($type) {
+        'inno' {
+          if ($Record) {
+            $wingetArgs += @('--interactive', "--custom '/SAVEINF=`"$Config`"'")
+          }
+          elseif (Test-Path $Config) {
+            $wingetArgs += @("--custom '/LOADINF=`"$Config`"'")
+          }
+          else {
+            Write-Host "Config file not found: $Config" -ForegroundColor Red
+          }
         }
-        elseif (Test-Path $Config) {
-          $wingetArgs += @("--custom '/LOADINF=`"$Config`"'")
+        { $_ -in @('wix', 'burn') } {
+          if ($Record) {
+            $wingetArgs += @('--interactive', "--custom '/log `"$logsDir\$Id.log`"'")
+          }
+          elseif (Test-Path $Config) {
+            $fileContent = (Get-Content $Config | Expand-EnvVars) `
+              -join ' ' `
+              -replace '`', '``' `
+              -replace '"', '`"'
+            $wingetArgs += @("--custom `"$fileContent`"")
+          }
+          else {
+            Write-Host "Config file not found: $Config" -ForegroundColor Red
+          }
         }
-        else {
-          Write-Host "Config file not found: $Config" -ForegroundColor Red
-        }
-      }
-      { $_ -in @('wix', 'burn') } {
-        if ($Record) {
-          $wingetArgs += @('--interactive', "--custom '/log `"$logsDir\$Id.log`"'")
-        }
-        elseif (Test-Path $Config) {
-          $fileContent = (Get-Content $Config | Expand-EnvVars) `
-            -join ' ' `
-            -replace '`', '``' `
-            -replace '"', '`"'
-          $wingetArgs += @("--custom `"$fileContent`"")
-        }
-        else {
-          Write-Host "Config file not found: $Config" -ForegroundColor Red
-        }
-      }
-      default {
-        if (Test-Path $Config) {
-          Write-Host "Config file is not supported for $type installer type" -ForegroundColor Red
+        default {
+          if (Test-Path $Config) {
+            Write-Host "Config file is not supported for $type installer type" -ForegroundColor Red
+          }
         }
       }
     }
