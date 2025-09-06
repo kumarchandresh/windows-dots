@@ -13,6 +13,27 @@ function Test-IsCommandAvailable {
   return [bool](Get-Command -Name $Command -ErrorAction SilentlyContinue)
 }
 
+function Test-WindowsTerminal {
+  $currentProcessId = $PID
+  $maxDepth = 99
+  $depth = 0
+  while ($depth -lt $maxDepth) {
+    $parentProcess = (Get-Process -Id $currentProcessId).Parent
+    if (-not $parentProcess) {
+      return $false
+    }
+    if ($parentProcess.Name -eq 'WindowsTerminal') {
+      return $true
+    }
+    $currentProcessId = $parentProcess.Id
+    if ($currentProcessId -eq 0) {
+      return $false
+    }
+    $depth++
+  }
+  return $false
+}
+
 # https://stackoverflow.com/a/47869761/5887576
 function Test-PendingReboot {
   if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore) {

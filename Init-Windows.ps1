@@ -22,6 +22,10 @@ function Write-Title {
 Write-Host "Running as admin? $(if (Test-IsProcessElevated) { 'Yes' } else { 'No' })" -ForegroundColor DarkGray
 Write-Host "Executed itself? $(if($SelfExecuted) { 'Yes' } else { 'No' })" -ForegroundColor DarkGray
 
+if (Test-WindowsTerminal) {
+  throw 'Cannot be executed from Windows Terminal.'
+}
+
 if ((Test-IsProcessElevated) -and (-not $SelfExecuted)) {
   throw 'Cannot be executed from an elevated PowerShell session.'
 }
@@ -42,6 +46,15 @@ if ($PSEdition -ne 'Core') {
     winget source update
     winget upgrade winget
   }
+
+  if (Test-IsWinGetPackageInstalled 'Microsoft.WindowsTerminal') {
+    Write-Title '(-) Uninstall Windows Terminal'
+    winget uninstall 'Microsoft.WindowsTerminal'
+  }
+
+  # https://github.com/microsoft/terminal
+  Write-Title '(+) Install Windows Terminal (Preview)'
+  Install-WinGetPackage 'Microsoft.WindowsTerminal.Preview'
 
   # https://github.com/ScoopInstaller/Scoop/wiki
   Write-Title '(+) Install scoop'
@@ -113,6 +126,7 @@ if ($PSEdition -ne 'Core') {
 if (Test-IsProcessElevated) {
   # https://learn.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
   # https://learn.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022#use-winget-to-install-or-modify-visual-studio
+  # https://visualstudio.microsoft.com/visual-cpp-build-tools/
   # TODO: Find out how to update the workloads; it may have something to do with winget's configure command
   Write-Title '(+) Install Visual Studio Build Tools for C++'
   Install-WinGetPackage -Global 'Microsoft.VisualStudio.2022.BuildTools' -Config 'VisualStudio.BuildTools.txt' -Override
