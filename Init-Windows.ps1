@@ -47,6 +47,7 @@ if ($PSEdition -ne 'Core') {
     winget upgrade winget
   }
 
+  # TODO: Figure out how to register Windows Terminal Preivew as the default terminal (in Win+X menu) and keep both
   if (Test-IsWinGetPackageInstalled 'Microsoft.WindowsTerminal') {
     Write-Title '(-) Uninstall Windows Terminal'
     winget uninstall 'Microsoft.WindowsTerminal'

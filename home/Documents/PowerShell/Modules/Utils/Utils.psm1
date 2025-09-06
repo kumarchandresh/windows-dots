@@ -15,21 +15,27 @@ function Test-IsCommandAvailable {
 
 function Test-WindowsTerminal {
   $currentProcessId = $PID
-  $maxDepth = 99
-  $depth = 0
-  while ($depth -lt $maxDepth) {
-    $parentProcess = (Get-Process -Id $currentProcessId).Parent
-    if (-not $parentProcess) {
+  $maxDepth = 15
+  for ($i = 0; $i -lt $maxDepth; $i++) {
+    $processInfo = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $currentProcessId"
+    if (-not $processInfo -or -not $processInfo.ParentProcessId) {
       return $false
     }
-    if ($parentProcess.Name -eq 'WindowsTerminal') {
-      return $true
+    $parentProcessId = $processInfo.ParentProcessId
+    $parentProcess = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $parentProcessId"
+    if ($null -ne $parentProcess) {
+      if ($parentProcess.Name -eq 'WindowsTerminal.exe') {
+        if ($parentProcess.ExecutablePath -notlike '*WindowsTerminalPreview*') {
+          return $true
+        } else {
+          return $false
+        }
+      }
     }
-    $currentProcessId = $parentProcess.Id
+    $currentProcessId = $parentProcessId
     if ($currentProcessId -eq 0) {
-      return $false
+      break
     }
-    $depth++
   }
   return $false
 }
