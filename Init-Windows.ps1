@@ -107,6 +107,46 @@ if ($PSEdition -ne 'Core') {
   exit 0
 }
 
+# https://github.com/gerardog/gsudo
+Write-Title '(+) Install gsudo'
+Install-ScoopPackage 'main/gsudo'
+
+Import-Module -Force 'gsudoModule'
+Write-Host "`nRunning as admin; expect a UAC prompt." -ForegroundColor Yellow
+gsudo {
+  # https://learn.microsoft.com/en-us/windows/wsl/install-manual
+  $wslMissing = -not (Test-IsCommandAvailable wsl)
+  if (-not $wslMissing) {
+    $wslMissing = ((wsl --status 2>&1 | Out-String) -replace "`0", '').Contains('not installed')
+  }
+  if ($wslMissing) {
+    @(
+      'Microsoft-Windows-Subsystem-Linux',
+      'VirtualMachinePlatform'
+    ) | ForEach-Object {
+      $featureName = $_
+      $feature = Get-WindowsOptionalFeature -Online | Where-Object { $_.FeatureName -eq $featureName }
+      if ($feature.State -ne 'Enabled' -or $feature.State -ne 'EnablePending') {
+        Write-Host "`n(+) Enable Windows optional feature: $_" -ForegroundColor Blue
+        Enable-WindowsOptionalFeature -Online -FeatureName $_ -All -NoRestart
+      }
+    }
+    Write-Host "`n(+) Install WSL Linux kernel update package"
+    wsl --update
+  }
+}
+
+if (Test-PendingReboot) {
+  # TODO: How to restart automatically and execute this script again?
+  Write-Host "A reboot is pending. Restart and run this script again." -ForegroundColor Yellow
+  exit 0
+}
+
+if (Test-IsCommandAvailable wsl) {
+  # by default, installs Ubuntu and runs it
+  wsl --install
+}
+
 # https://github.com/bitwarden/clients
 Write-Title '(+) Install Bitwarden CLI'
 Install-ScoopPackage 'main/bitwarden-cli'
@@ -129,11 +169,9 @@ Install-ScoopPackage 'main/nodejs-lts'
 Write-Title '(+) Install Microsoft Build of OpenJDK™ (LTS)'
 Install-ScoopPackage 'java/microsoft-lts-jdk'
 
+# https://groovy-lang.org
 Write-Title '(+) Install Groovy'
 Install-ScoopPackage 'main/groovy'
-
-Write-Title '(+) Install gsudo'
-Install-ScoopPackage 'main/gsudo'
 
 # https://github.com/fastfetch-cli/fastfetch
 Write-Title '(+) Install fastfetch'

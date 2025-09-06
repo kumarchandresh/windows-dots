@@ -13,6 +13,29 @@ function Test-IsCommandAvailable {
   return [bool](Get-Command -Name $Command -ErrorAction SilentlyContinue)
 }
 
+# https://stackoverflow.com/a/47869761/5887576
+function Test-PendingReboot {
+  if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -ErrorAction Ignore) {
+    return $true
+  }
+  if (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -ErrorAction Ignore) {
+    return $true
+  }
+  if (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations -ErrorAction Ignore) {
+    return $true
+  }
+  try { 
+    $util = [wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities"
+    $status = $util.DetermineIfRebootPending()
+    if (($null -ne $status) -and $status.RebootPending) {
+      return $true
+    }
+  }
+  catch {}
+ 
+  return $false
+}
+
 # https://stackoverflow.com/a/74297741
 function ConvertFrom-FixedColumnTable {
   [CmdletBinding()]
@@ -73,14 +96,14 @@ function Expand-EnvVars {
   )
   process {
     return [regex]::Replace($InputObject, '%(\w+)%', { param($match)
-      $envVar = [Environment]::GetEnvironmentVariable($match.Groups[1].Value)
-      if ($envVar) {
-        $envVar
-      }
-      else {
-        $match.Value
-      }
-    })
+        $envVar = [Environment]::GetEnvironmentVariable($match.Groups[1].Value)
+        if ($envVar) {
+          $envVar
+        }
+        else {
+          $match.Value
+        }
+      })
   }
 }
 
@@ -138,7 +161,8 @@ function Unlock-Bitwarden {
     $retry = 'n'
     if (($LASTEXITCODE -eq 0) -and ($bwStatus.status -ne 'unlocked')) {
       Write-Host 'Bitwarden vault unlocked successfully' -ForegroundColor Green
-    } else {
+    }
+    else {
       Write-Host 'Failed to unlock Bitwarden vault' -ForegroundColor Red
       $retry = Read-Host 'Try again? (y/n)'
     }

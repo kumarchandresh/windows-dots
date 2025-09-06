@@ -42,6 +42,12 @@
         "hidden": false
       },
       {
+        "name": "Ubuntu",
+        "source": "Microsoft.WSL",
+        "guid": "{0f597b1a-3775-5dce-8034-9b675e161f24}",
+        "hidden": false
+      },
+      {
         "name": "Git Bash",
         "guid": "{ff8f464d-e982-46a0-b10c-21d4bdc988d1}",
         "commandline": "%USERPROFILE%\\scoop\\apps\\git\\current\\bin\\bash.exe -li",
