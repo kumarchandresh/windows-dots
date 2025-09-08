@@ -1,3 +1,4 @@
+[CmdletBinding()]
 param (
   [switch]$SelfExecuted
 )
@@ -19,8 +20,9 @@ function Write-Title {
   Write-Host @args -ForegroundColor Blue
 }
 
-Write-Host "Running as admin? $(if (Test-IsProcessElevated) { 'Yes' } else { 'No' })" -ForegroundColor DarkGray
-Write-Host "Executed itself? $(if($SelfExecuted) { 'Yes' } else { 'No' })" -ForegroundColor DarkGray
+Write-Host ''
+Write-Host "Running as admin? $(if (Test-IsProcessElevated) { 'Yes' } else { 'No' })" -ForegroundColor Magenta
+Write-Host "Executed itself? $(if($SelfExecuted) { 'Yes' } else { 'No' })" -ForegroundColor Magenta
 
 if (Test-WindowsTerminal) {
   throw 'Cannot be executed from Windows Terminal.'
@@ -74,6 +76,10 @@ if ($PSEdition -ne 'Core') {
   Write-Title '(+) Install aria2'
   Install-ScoopPackage 'main/aria2'
   scoop config aria2-warning-enabled false
+
+  # https://wixtoolset.org
+  Write-Title '(+) Install dark (WiX Toolset Decompiler)'
+  Install-ScoopPackage 'main/dark'
 
   # https://www.7-zip.org
   Write-Title '(+) Install 7zip'
@@ -181,9 +187,26 @@ if (Test-IsCommandAvailable wsl) {
   }
 }
 
-# https://wixtoolset.org
-Write-Title '(+) Install dark (WiX Toolset Decompiler)'
-Install-ScoopPackage 'main/dark'
+# https://go.dev
+Write-Title '(+) Install Go'
+Install-ScoopPackage 'main/go'
+
+# https://www.rust-lang.org
+Write-Title '(+) Install Rust'
+if (Test-IsCommandAvailable rustup) { 
+  rustup update
+}
+else {
+  Install-ScoopPackage 'main/rustup'
+}
+
+# https://www.microsoft.com/openjdk
+Write-Title '(+) Install Microsoft Build of OpenJDK™ (LTS)'
+Install-ScoopPackage 'java/microsoft-lts-jdk'
+
+# https://groovy-lang.org
+Write-Title '(+) Install Groovy'
+Install-ScoopPackage 'main/groovy'
 
 # https://www.python.org
 Write-Title '(+) Install Python (3.x)'
@@ -194,21 +217,13 @@ reg import "$HOME\scoop\apps\python\current\install-pep-514.reg"
 Write-Title '(+) Install Node.js (LTS)'
 Install-ScoopPackage 'main/nodejs-lts'
 
-# https://www.microsoft.com/openjdk
-Write-Title '(+) Install Microsoft Build of OpenJDK™ (LTS)'
-Install-ScoopPackage 'java/microsoft-lts-jdk'
-
-# https://groovy-lang.org
-Write-Title '(+) Install Groovy'
-Install-ScoopPackage 'main/groovy'
+# https://github.com/lukesampson/psutils
+Write-Title '(+) Install psutils'
+Install-ScoopPackage 'main/psutils'
 
 # https://github.com/fastfetch-cli/fastfetch
 Write-Title '(+) Install fastfetch'
 Install-ScoopPackage 'main/fastfetch'
-
-# https://github.com/lukesampson/psutils
-Write-Title '(+) Install psutils'
-Install-ScoopPackage 'main/psutils'
 
 # https://github.com/junegunn/fzf
 Write-Title '(+) Install fzf'
@@ -330,7 +345,7 @@ $wtThemes = @(
 )
 
 try {
-  $TerminalDir = Get-ChildItem "$env:LOCALAPPDATA\Packages" -Filter Microsoft.WindowsTerminal_* | Select-Object -First 1 -ExpandProperty FullName
+  $TerminalDir = Get-ChildItem "$env:LOCALAPPDATA\Packages" -Filter Microsoft.WindowsTerminal* | Select-Object -First 1 -ExpandProperty FullName
   if ($null -ne $TerminalDir) {
     $TerminalSettingsPath = Join-Path $TerminalDir 'LocalState\settings.json'
     $TerminalSettings = Get-Content $TerminalSettingsPath -Raw | ConvertFrom-Json -Depth 99
