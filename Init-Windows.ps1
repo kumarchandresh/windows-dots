@@ -126,7 +126,7 @@ if ($PSEdition -ne 'Core') {
   Install-ScoopPackage 'main/pwsh'
 
   # Re-launch in PowerShell (Core)
-  & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -ArgumentList '-SelfExecuted'
+  & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath '-SelfExecuted'
   exit 0
 }
 
@@ -167,7 +167,7 @@ else {
   Install-ScoopPackage 'main/gsudo'
 
   Write-Host "`nRunning as admin; expect a UAC prompt." -ForegroundColor Yellow
-  & gsudo --integrity High pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -ArgumentList '-SelfExecuted'
+  & gsudo --integrity High pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath '-SelfExecuted'
 }
 
 if (Test-PendingReboot) {
