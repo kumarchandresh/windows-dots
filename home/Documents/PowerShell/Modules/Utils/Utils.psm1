@@ -27,7 +27,8 @@ function Test-WindowsTerminal {
       if ($parentProcess.Name -eq 'WindowsTerminal.exe') {
         if ($parentProcess.ExecutablePath -notlike '*WindowsTerminalPreview*') {
           return $true
-        } else {
+        }
+        else {
           return $false
         }
       }
@@ -61,6 +62,17 @@ function Test-PendingReboot {
   catch {}
  
   return $false
+}
+
+function Test-IsWslAvailable {
+  if (-not (Test-IsCommandAvailable wsl)) {
+    return $false
+  }
+  $status = (wsl --status 2>&1 | Out-String) -replace "`0", ''
+  if ("$status".Contains('not installed')) {
+    return $false
+  }
+  return $true
 }
 
 # https://stackoverflow.com/a/74297741

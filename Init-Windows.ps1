@@ -126,7 +126,7 @@ if ($PSEdition -ne 'Core') {
   Install-ScoopPackage 'main/pwsh'
 
   # Re-launch in PowerShell (Core)
-  & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath '-SelfExecuted'
+  & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -SelfExecuted
   exit 0
 }
 
@@ -139,12 +139,8 @@ if (Test-IsProcessElevated) {
   Install-WinGetPackage -Global 'Microsoft.VisualStudio.2022.BuildTools' -Config 'VisualStudio.BuildTools.txt' -Override
 
   # https://learn.microsoft.com/en-us/windows/wsl/install-manual
-  $wslMissing = -not (Test-IsCommandAvailable wsl)
-  if (-not $wslMissing) {
-    $wslStatus = (wsl --status 2>&1 | Out-String) -replace "`0", ''
-    $wslMissing = $wslStatus.Contains('not installed')
-  }
-  if ($wslMissing) {
+  
+  if (-not (Test-IsWslAvailable)) {
     @(
       'Microsoft-Windows-Subsystem-Linux',
       'VirtualMachinePlatform'
@@ -167,7 +163,7 @@ else {
   Install-ScoopPackage 'main/gsudo'
 
   Write-Host "`nRunning as admin; expect a UAC prompt." -ForegroundColor Yellow
-  & gsudo --integrity High pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath '-SelfExecuted'
+  & gsudo --integrity High pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -SelfExecuted
 }
 
 if (Test-PendingReboot) {
@@ -179,7 +175,7 @@ if (Test-PendingReboot) {
   }
 }
 
-if (Test-IsCommandAvailable wsl) {
+if (Test-IsWslAvailable) {
   $wslList = (wsl --list --verbose 2>&1 | Out-String) -replace "`0", ''
   if ($wslList -notmatch "Ubuntu") {
     Write-Title "(+) Install WSL Distro: Ubuntu"
