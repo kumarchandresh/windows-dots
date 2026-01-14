@@ -49,7 +49,7 @@ if ($PSEdition -ne 'Core') {
     winget upgrade winget
   }
 
-  # TODO: Figure out how to register Windows Terminal Preivew as the default terminal (in Win+X menu) and keep both
+  # TODO: Figure out how to register Windows Terminal Preview as the default terminal (in Win+X menu) and keep both
   if (Test-IsWinGetPackageInstalled 'Microsoft.WindowsTerminal') {
     Write-Title '(-) Uninstall Windows Terminal'
     winget uninstall 'Microsoft.WindowsTerminal'
@@ -260,6 +260,10 @@ Install-ScoopPackage 'main/tlrc'
 # https://code.visualstudio.com
 Write-Title '(+) Install Visual Studio Code'
 Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'Microsoft.VSCode.inf'
+
+# https://obsidian.md
+Write-Title '(+) Install Obsidian'
+Install-WinGetPackage 'Obsidian.Obsidian'
 
 # https://github.com/dahlbyk/posh-git
 Write-Title '(+) Install posh-git'
