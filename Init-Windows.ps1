@@ -265,6 +265,10 @@ Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'Microsoft.VSCode.inf
 Write-Title '(+) Install Obsidian'
 Install-WinGetPackage 'Obsidian.Obsidian'
 
+# https://discord.com
+Write-Title '(+) Install Discord'
+Install-WinGetPackage 'Discord.Discord'
+
 # https://github.com/dahlbyk/posh-git
 Write-Title '(+) Install posh-git'
 Install-ScoopPackage 'extras/posh-git'
