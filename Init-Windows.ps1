@@ -213,6 +213,18 @@ reg import "$HOME\scoop\apps\python\current\install-pep-514.reg"
 Write-Title '(+) Install Node.js (LTS)'
 Install-ScoopPackage 'main/nodejs-lts'
 
+# https://pnpm.io
+Write-Title '(+) Install pnpm'
+Install-ScoopPackage 'main/pnpm'
+if (-not $env:PNPM_HOME) {
+  & pnpm setup
+  $env:PNPM_HOME = [Environment]::GetEnvironmentVariable('PNPM_HOME', 'User')
+  Restore-EnvPath
+}
+
+Write-Title '(+) Add Turborepo CLI'
+& pnpm add turbo --global
+
 # https://github.com/lukesampson/psutils
 Write-Title '(+) Install psutils'
 Install-ScoopPackage 'main/psutils'
