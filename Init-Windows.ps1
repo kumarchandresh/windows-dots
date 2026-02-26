@@ -40,7 +40,7 @@ if ($PSEdition -eq 'Core' -and (-not $SelfExecuted)) {
 
 if (-not $PSBoundParameters.ContainsKey('MachineType')) {
   $validMachineTypes = @('personal', 'work')
-  $MachineType = Read-Host "Enter machine type (`"$($validMachineTypes -join '` or `"')`)"
+  $MachineType = Read-Host "Enter machine type (`"$($validMachineTypes -join '`" or `"')`")"
   if ($MachineType -notin $validMachineTypes) {
     throw "Invalid machine type: $MachineType. Please enter 'personal' or 'work'."
   }
@@ -72,6 +72,8 @@ if ($PSEdition -ne 'Core') {
   # https://github.com/ScoopInstaller/Scoop/wiki
   Write-Title '(+) Install scoop'
   if (-not (Test-IsCommandAvailable 'scoop')) {
+    Write-Host '(=) Set scoop branch (develop)'
+    $env:SCOOP_BRANCH = 'develop'
     Invoke-RestMethod -Uri 'https://get.scoop.sh' | Invoke-Expression; Restore-EnvPath
 
     if (-not (Test-IsCommandAvailable 'scoop')) {
@@ -79,11 +81,12 @@ if ($PSEdition -ne 'Core') {
     }
   }
   else {
+    if ((scoop config scoop_branch) -ne 'develop') {
+      Write-Host '(=) Set scoop branch (develop)'
+      scoop config scoop_branch develop
+    }
     scoop update
   }
-
-  Write-Host '(=) Set scoop branch (develop)'
-  scoop config scoop_branch develop
 
   # https://aria2.github.io
   Write-Title '(+) Install aria2'
@@ -322,21 +325,21 @@ Unlock-Bitwarden
 Write-Title '(+) Install chezmoi'
 Install-ScoopPackage 'main/chezmoi'
 
-try {
-  chezmoi git status 2>&1 | Out-Null
+chezmoi git status *> $null
+$isInitialized = $LASTEXITCODE -eq 0
+
+Write-Host 'Applying chezmoi changes...' -ForegroundColor Yellow
+$env:CHEZMOI_MACHINE_TYPE = $MachineType
+
+if (-not $isInitialized) {
+  chezmoi init --apply 'github.com/kumarchandresh' --force
 }
-finally {
-  Write-Host 'Applying chezmoi changes...' -ForegroundColor Yellow
-  if ($LASTEXITCODE -ne 0) {
-    $chezmoiData = @{ machineType = $MachineType } | ConvertTo-Json -Compress
-    $chezmoiData | chezmoi init --apply 'github.com/kumarchandresh' --force --data=json
-  }
-  else {
-    chezmoi update --force
-  }
-  if ($LASTEXITCODE -eq 0) {
-    Write-Host 'Done.' -ForegroundColor Green
-  }
+else {
+  chezmoi update --force
+}
+
+if ($LASTEXITCODE -eq 0) {
+  Write-Host 'Done.' -ForegroundColor Green
 }
 
 $sshGitHub = & ssh -T git@github.com 2>&1 | Out-String

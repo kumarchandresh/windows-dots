@@ -11,7 +11,7 @@ Restore-EnvPath # Change "Path" precedence
 
 $GitPromptSettings.EnableStashStatus = $true
 
-zoxide init powershell --no-cmd | Invoke-Expression
+Invoke-Expression (& { (zoxide init powershell | Out-String) })
 
 oh-my-posh init pwsh --config "$HOME\.config\oh-my-posh\pure.omp.yaml" | Invoke-Expression
 

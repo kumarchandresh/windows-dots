@@ -1,8 +1,13 @@
-{{- $machineType := .machineType -}}
+{{- $machineType := "" -}}
+{{- if hasKey . "machineType" -}}
+{{-   $machineType = .machineType -}}
+{{- else if env "CHEZMOI_MACHINE_TYPE" -}}
+{{-   $machineType = env "CHEZMOI_MACHINE_TYPE" -}}
+{{- end -}}
+
 {{- $personal := false -}}
 
 {{- if not $machineType -}}
-{{-   /* If machineType wasn't passed in, fall back to prompting for personal */ -}}
 {{-   if stdinIsATTY -}}
 {{-     if promptBoolOnce . "personal" "Use personal settings on this machine" -}}
 {{-       $machineType = "personal" -}}
@@ -10,7 +15,6 @@
 {{-       $machineType = "work" -}}
 {{-     end -}}
 {{-   else -}}
-{{-     /* Default to work in non-interactive environments if not specified */ -}}
 {{-     $machineType = "work" -}}
 {{-   end -}}
 {{- end -}}
