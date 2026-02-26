@@ -1,32 +1,20 @@
-{{- $machineType := "" -}}
+{{- $machineType := "work" -}} {{/* Default to work */}}
+
 {{- if hasKey . "machineType" -}}
-{{-   $machineType = .machineType -}}
+  {{- $machineType = .machineType -}}
 {{- else if env "CHEZMOI_MACHINE_TYPE" -}}
-{{-   $machineType = env "CHEZMOI_MACHINE_TYPE" -}}
-{{- end -}}
-
-{{- $personal := false -}}
-
-{{- if not $machineType -}}
-{{-   if stdinIsATTY -}}
-{{-     if promptBoolOnce . "personal" "Use personal settings on this machine" -}}
-{{-       $machineType = "personal" -}}
-{{-     else -}}
-{{-       $machineType = "work" -}}
-{{-     end -}}
-{{-   else -}}
-{{-     $machineType = "work" -}}
-{{-   end -}}
-{{- end -}}
-
-{{- if eq $machineType "personal" -}}
-{{-   $personal = true -}}
+  {{- $machineType = env "CHEZMOI_MACHINE_TYPE" | lower -}}
+{{- else if stdinIsATTY -}}
+  {{- $machineType = promptStringOnce . "machineType" "Machine type (personal|work)" "work" | lower -}}
 {{- end -}}
 
 [data]
   machineType = {{ $machineType | quote }}
-  personal = {{ $personal }}
 
 [interpreters.ps1]
+  command = "pwsh"
+  args = ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass"]
+
+[cd]
   command = "pwsh"
   args = ["-NoLogo"]
