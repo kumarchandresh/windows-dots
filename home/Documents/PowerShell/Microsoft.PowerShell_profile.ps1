@@ -11,9 +11,9 @@ Restore-EnvPath # Change "Path" precedence
 
 $GitPromptSettings.EnableStashStatus = $true
 
-Invoke-Expression (& { (zoxide init powershell --no-cmd | Out-String) })
+zoxide init powershell --no-cmd | Invoke-Expression
 
-Invoke-Expression (& { (oh-my-posh init pwsh --config "$HOME\.config\oh-my-posh\pure.omp.yaml" | Out-String) })
+oh-my-posh init pwsh --config "$HOME\.config\oh-my-posh\pure.omp.yaml" | Invoke-Expression
 
 function Set-FzfLocation {
   [CmdletBinding(DefaultParameterSetName = 'Path')]
