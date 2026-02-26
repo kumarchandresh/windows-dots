@@ -31,11 +31,13 @@ function Install-WinGetPackage {
     [Parameter()]
     [string]$Config,
     [Parameter()]
+    [String]$Location,
+    [Parameter()]
     [switch]$Override,
     [Parameter()]
     [switch]$Global,
     [Parameter()]
-    [switch]$Record
+    [switch]$SaveConfig
   )
   $Scope = if ($Global) { 'machine' } else { 'user' }
   $wingetCmd = if (Test-IsWinGetPackageInstalled $Id) { 'upgrade' } else { 'install' }
@@ -46,6 +48,9 @@ function Install-WinGetPackage {
   $wingetArgs += @('--accept-source-agreements', '--accept-package-agreements')
   if ($PSBoundParameters.ContainsKey('InstallerType')) {
     $wingetArgs += @('--installer-type', $InstallerType)
+  }
+  if (![string]::IsNullOrEmpty($Location)) {
+    $wingetArgs += @('--location', $Location)
   }
   $type = $null
   $showArgs = @('--exact', '--id', $Id)
@@ -80,7 +85,7 @@ function Install-WinGetPackage {
     if ($Config) {
       switch ($type) {
         'inno' {
-          if ($Record) {
+          if ($SaveConfig) {
             $wingetArgs += @('--interactive', "--custom '/SAVEINF=`"$Config`"'")
           }
           elseif (Test-Path $Config) {
@@ -91,7 +96,7 @@ function Install-WinGetPackage {
           }
         }
         { $_ -in @('wix', 'burn') } {
-          if ($Record) {
+          if ($SaveConfig) {
             $wingetArgs += @('--interactive', "--custom '/log `"$logsDir\$Id.log`"'")
           }
           elseif (Test-Path $Config) {

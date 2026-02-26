@@ -1,11 +1,26 @@
+{{- $machineType := .machineType -}}
 {{- $personal := false -}}
-{{- "" -}}
 
-{{- if stdinIsATTY -}}
-{{- $personal = promptBoolOnce . "personal" "Store personal secrets on this machine" -}}
+{{- if not $machineType -}}
+{{-   /* If machineType wasn't passed in, fall back to prompting for personal */ -}}
+{{-   if stdinIsATTY -}}
+{{-     if promptBoolOnce . "personal" "Use personal settings on this machine" -}}
+{{-       $machineType = "personal" -}}
+{{-     else -}}
+{{-       $machineType = "work" -}}
+{{-     end -}}
+{{-   else -}}
+{{-     /* Default to work in non-interactive environments if not specified */ -}}
+{{-     $machineType = "work" -}}
+{{-   end -}}
+{{- end -}}
+
+{{- if eq $machineType "personal" -}}
+{{-   $personal = true -}}
 {{- end -}}
 
 [data]
+  machineType = {{ $machineType | quote }}
   personal = {{ $personal }}
 
 [interpreters.ps1]

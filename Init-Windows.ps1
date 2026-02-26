@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param (
-  [switch]$SelfExecuted
+  [switch]$SelfExecuted,
+  [ValidateSet('personal', 'work')]
+  [string]$MachineType
 )
 
 # Get-ChildItem -Recurse -File | Where-Object { $_.Name -match '.ps(d|m)?1$' } | Unblock-File
@@ -34,6 +36,14 @@ if ((Test-IsProcessElevated) -and (-not $SelfExecuted)) {
 
 if ($PSEdition -eq 'Core' -and (-not $SelfExecuted)) {
   throw 'Must be executed from Windows PowerShell (not PowerShell Core).'
+}
+
+if (-not $PSBoundParameters.ContainsKey('MachineType')) {
+  $validMachineTypes = @('personal', 'work')
+  $MachineType = Read-Host "Enter machine type (`"$($validMachineTypes -join '` or `"')`)"
+  if ($MachineType -notin $validMachineTypes) {
+    throw "Invalid machine type: $MachineType. Please enter 'personal' or 'work'."
+  }
 }
 
 # Bootstrap in PowerShell (Core)
@@ -71,6 +81,9 @@ if ($PSEdition -ne 'Core') {
   else {
     scoop update
   }
+
+  Write-Host '(=) Set scoop branch (develop)'
+  scoop config scoop_branch develop
 
   # https://aria2.github.io
   Write-Title '(+) Install aria2'
@@ -126,7 +139,7 @@ if ($PSEdition -ne 'Core') {
   Install-ScoopPackage 'main/pwsh'
 
   # Re-launch in PowerShell (Core)
-  & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -SelfExecuted
+  & pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -SelfExecuted -MachineType $MachineType
   exit 0
 }
 
@@ -163,7 +176,7 @@ else {
   Install-ScoopPackage 'main/gsudo'
 
   Write-Host "`nRunning as admin; expect a UAC prompt." -ForegroundColor Yellow
-  & gsudo --integrity High pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -SelfExecuted
+  & gsudo --integrity High pwsh -NoProfile -ExecutionPolicy (Get-ExecutionPolicy) -File $PSCommandPath -SelfExecuted -MachineType $MachineType
 }
 
 if (Test-PendingReboot) {
@@ -277,9 +290,16 @@ Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'Microsoft.VSCode.inf
 Write-Title '(+) Install Obsidian'
 Install-WinGetPackage 'Obsidian.Obsidian'
 
-# https://discord.com
-Write-Title '(+) Install Discord'
-Install-WinGetPackage 'Discord.Discord'
+if ($MachineType -eq 'personal') {
+  # https://store.steampowered.com/
+  Write-Title '[+] Install Steam'
+  Install-WinGetPackage -Global 'Valve.Steam' -Location $(Join-Path (Get-WmiObject Win32_OperatingSystem).SystemDrive Steam)
+
+
+  # https://discord.com
+  Write-Title '(+) Install Discord'
+  Install-WinGetPackage 'Discord.Discord'
+}
 
 # https://github.com/dahlbyk/posh-git
 Write-Title '(+) Install posh-git'
@@ -308,7 +328,8 @@ try {
 finally {
   Write-Host 'Applying chezmoi changes...' -ForegroundColor Yellow
   if ($LASTEXITCODE -ne 0) {
-    chezmoi init --apply 'github.com/kumarchandresh' --force
+    $chezmoiData = @{ machineType = $MachineType } | ConvertTo-Json -Compress
+    $chezmoiData | chezmoi init --apply 'github.com/kumarchandresh' --force --data=json
   }
   else {
     chezmoi update --force
@@ -322,7 +343,7 @@ $sshGitHub = & ssh -T git@github.com 2>&1 | Out-String
 if ($sshGitHub -match 'kumarchandresh') {
   if (-not (Test-Path "$HOME\scoop\buckets\private")) {
     Write-Title "(+) Add scoop bucket: private"
-    & scoop bucket add 'private' 'git@github.com:kumarchandresh/scoop-private.git'
+    scoop bucket add 'private' 'git@github.com:kumarchandresh/scoop-private.git'
   }
 
   # https://www.monolisa.dev
