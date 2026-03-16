@@ -27,10 +27,10 @@
   ],
   "profiles": {
     "defaults": {
-      "colorScheme": "rose-pine",
+      "colorScheme": "Catppuccin Mocha",
       "cursorShape": "filledBox",
       "font": {
-        "face": "MonoLisa, '0xProto', Symbols Nerd Font",
+        "face": "MonoLisa, Symbols Nerd Font",
         "size": 11
       }
     },
@@ -254,7 +254,7 @@
       "brightYellow": "#f6c177"
     }
   ],
-  "theme": "rose-pine",
+  "theme": "Catppuccin Mocha",
   "themes": [
     {
       "name": "Catppuccin Frappe",

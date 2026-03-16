@@ -354,10 +354,6 @@ if ($sshGitHub -match 'kumarchandresh') {
   Install-ScoopPackage 'private/MonoLisa'
 }
 
-# https://github.com/0xType/0xProto
-Write-Title '(+) Install font: 0xProto'
-Install-ScoopPackage 'fonts/0xProto'
-
 # https://www.nerdfonts.com
 Write-Title '(+) Install Nerd Font Symbols'
 Install-ScoopPackage 'fonts/SymbolsNerdFont'
