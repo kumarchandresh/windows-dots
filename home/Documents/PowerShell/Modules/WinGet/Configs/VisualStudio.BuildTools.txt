@@ -1,5 +1,6 @@
 --passive
 --wait
+--norestart
 --update
 --add Microsoft.VisualStudio.Workload.VCTools
 --includeRecommended
