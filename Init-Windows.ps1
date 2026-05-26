@@ -293,6 +293,9 @@ Install-WinGetPackage 'Microsoft.VisualStudioCode' -Config 'Microsoft.VSCode.inf
 Write-Title '(+) Install Obsidian'
 Install-WinGetPackage 'Obsidian.Obsidian'
 
+Write-Title '(+) Install Paint.NET'
+Install-WinGetPackage 'dotPDN.PaintDotNet'
+
 if ($MachineType -eq 'personal') {
   # https://store.steampowered.com/
   Write-Title '[+] Install Steam'
